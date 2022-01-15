@@ -1,0 +1,21 @@
+# IntelliJ project files
+*.iml
+/.idea/**
+!/.idea/codeStyles/
+!/.idea/codeStyles/**
+!/.idea/inspectionProfiles/
+!/.idea/inspectionProfiles/**
+!/.idea/.gitignore
+
+# Gradle exclude paths
+/.gradle/
+/build/
+.dependency-mapper/
+local.properties
+# Project exclude paths
+/compiler-base/build/
+/compiler-base/ksp/build/
+/compiler-base/testing/build/
+/sweekt/compiler/build/
+/sweekt/compiler/embedded/build/
+/sweekt/gradle/build/

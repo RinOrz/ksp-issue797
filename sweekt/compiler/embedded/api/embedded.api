@@ -1,0 +1,8 @@
+public final class com/meowool/meta/embedded/SweektInfo {
+	public static final field ArtifactId Ljava/lang/String;
+	public static final field CompilerId Ljava/lang/String;
+	public static final field GroupId Ljava/lang/String;
+	public static final field INSTANCE Lcom/meowool/meta/embedded/SweektInfo;
+	public static final field Version Ljava/lang/String;
+}
+

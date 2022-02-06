@@ -25,3 +25,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
 
 fun <K : ValueParameterDescriptor, V : ResolvedValueArgument> Map<K, V>.argByName(name: String) =
   this.filter { it.key.name.asString() == name }.values.singleOrNull()
+
+fun <K : ValueParameterDescriptor, V : ResolvedValueArgument> Map<K, V>.argSingleOrNull() = this.values.singleOrNull()
+
+fun <K : ValueParameterDescriptor, V : ResolvedValueArgument> Map<K, V>.argSingle() = this.values.single()

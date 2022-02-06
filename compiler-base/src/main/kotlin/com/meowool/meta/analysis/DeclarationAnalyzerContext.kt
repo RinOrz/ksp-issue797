@@ -20,13 +20,27 @@
  */
 package com.meowool.meta.analysis
 
+import com.intellij.psi.PsiElement
+import com.meowool.meta.MetaExtension
+import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
 
 /**
  * @author 凛 (RinOrz)
  */
-abstract class DeclarationAnalyzerContext<Raw : KtDeclaration, Resolved : DeclarationDescriptor> : AnalyzerContext() {
-  abstract val declaration: Raw
-  abstract val descriptor: Resolved
-}
+open class DeclarationAnalyzerContext<Raw : KtDeclaration, Resolved : DeclarationDescriptor, Result>(
+  val declaration: Raw,
+  val descriptor: Resolved,
+  override val trace: BindingTrace,
+  override val languageVersionSettings: LanguageVersionSettings,
+  override val moduleDescriptor: ModuleDescriptor,
+  override val metaContext: MetaExtension.Context,
+  override val deprecationResolver: DeprecationResolver,
+  override val componentContainer: StorageComponentContainer,
+  override val analyzed: PsiElement = declaration,
+) : AnalyzerContext<Result>()

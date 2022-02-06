@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOriginImpl
 
 object DeclarationOrigin {
   object Synthetic : IrDeclarationOriginImpl("SYNTHETIC_DECLARATION", isSynthetic = true)
+  object SyntheticConstructor : IrDeclarationOriginImpl("SYNTHETIC_CONSTRUCTOR")
   object SyntheticDefaultPropertyAccessor : IrDeclarationOriginImpl(
     "SYNTHETIC_DEFAULT_PROPERTY_ACCESSOR", isSynthetic = true
   )

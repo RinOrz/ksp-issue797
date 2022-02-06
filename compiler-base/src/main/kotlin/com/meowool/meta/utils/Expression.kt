@@ -20,11 +20,12 @@
  */
 @file:Suppress("SpellCheckingInspection", "NOTHING_TO_INLINE")
 
-package com.meowool.catnip.utils
+package com.meowool.meta.utils
 
 import org.jetbrains.kotlin.js.translate.utils.BindingUtils
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiUtil
+import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.checkers.CheckerContext
 
@@ -32,6 +33,13 @@ import org.jetbrains.kotlin.resolve.checkers.CheckerContext
  * @author 凛 (RinOrz)
  */
 inline fun KtExpression.deparenthesize(): KtExpression = KtPsiUtil.safeDeparenthesize(this)
+
+/**
+ * @author 凛 (RinOrz)
+ */
+inline fun KtExpression.dereturned(): KtExpression? = deparenthesize().let {
+  if (it is KtReturnExpression) it.returnedExpression else it
+}
 
 /**
  * @author 凛 (RinOrz)

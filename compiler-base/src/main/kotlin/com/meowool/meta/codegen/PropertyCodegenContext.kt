@@ -20,13 +20,21 @@
  */
 package com.meowool.meta.codegen
 
+import com.meowool.meta.MetaExtension
+import com.meowool.meta.internal.MetaReferencedSymbolRemapper
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 
 /**
  * @author 凛 (RinOrz)
  */
-abstract class PropertyCodegenContext(base: IrPluginContext) : ElementCodegenContext<IrProperty, IrStatement>(base) {
+abstract class PropertyCodegenContext(
+  pluginContext: IrPluginContext,
+  module: IrModuleFragment,
+  metaContext: MetaExtension.Context,
+  referencedSymbolRemapper: MetaReferencedSymbolRemapper
+) : ElementCodegenContext<IrProperty, IrStatement>(pluginContext, module, metaContext, referencedSymbolRemapper) {
   abstract val property: IrProperty
 }

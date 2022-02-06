@@ -23,30 +23,48 @@ package com.meowool.meta
 import com.meowool.meta.analysis.CallAnalysisPremise
 import com.meowool.meta.analysis.CallAnalyzer
 import com.meowool.meta.analysis.CallAnalyzerContext
+import com.meowool.meta.analysis.ClassLikeAnalysisPremise
+import com.meowool.meta.analysis.ClassLikeAnalyzerContext
+import com.meowool.meta.analysis.ClassOrObjectAnalysisPremise
 import com.meowool.meta.analysis.DeclarationAnalyzer
 import com.meowool.meta.analysis.EmptyPremise
 import com.meowool.meta.analysis.EmptyPremiseWithParam
+import com.meowool.meta.analysis.ExpressionAnalysisPremise
+import com.meowool.meta.analysis.ExpressionAnalyzer
+import com.meowool.meta.analysis.ExpressionAnalyzerContext
 import com.meowool.meta.analysis.PropertyAnalysisPremise
 import com.meowool.meta.analysis.PropertyAnalyzerContext
 import com.meowool.meta.internal.AnalyzerFactory
-import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
-import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
+import org.jetbrains.kotlin.psi.KtClassOrObject
 
 /**
  * @author 凛 (RinOrz)
  */
 interface Analyzers {
-  fun property(
+  fun <R> classOrObject(
+    premise: ClassOrObjectAnalysisPremise = EmptyPremiseWithParam,
+    @BuilderInference analyzing: ClassLikeAnalyzerContext<KtClassOrObject, R>.() -> R
+  ): DeclarationAnalyzer<R>
+
+  fun <R> classLike(
+    premise: ClassLikeAnalysisPremise = EmptyPremiseWithParam,
+    @BuilderInference analyzing: ClassLikeAnalyzerContext<*, R>.() -> R
+  ): DeclarationAnalyzer<R>
+
+  fun <R> property(
     premise: PropertyAnalysisPremise = EmptyPremiseWithParam,
-    analyzing: PropertyAnalyzerContext.() -> Unit
-  ): DeclarationAnalyzer
+    @BuilderInference analyzing: PropertyAnalyzerContext<R>.() -> R
+  ): DeclarationAnalyzer<R>
 
-  fun call(
+  fun <R> call(
     premise: CallAnalysisPremise = EmptyPremise,
-    analyzing: CallAnalyzerContext.() -> Unit
-  ): CallAnalyzer
+    @BuilderInference analyzing: CallAnalyzerContext<R>.() -> R
+  ): CallAnalyzer<R>
 
-  operator fun invoke(block: Analyzers.() -> Unit) = block()
+  fun <R> expression(
+    premise: ExpressionAnalysisPremise = EmptyPremise,
+    @BuilderInference analyzing: ExpressionAnalyzerContext<R>.() -> R
+  ): ExpressionAnalyzer<R>
 }
 
 val analyzers: Analyzers = AnalyzerFactory

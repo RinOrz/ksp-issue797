@@ -21,16 +21,23 @@
 package com.meowool.meta.codegen
 
 import com.meowool.meta.MetaExtension
-import com.meowool.meta.internal.MetaSymbolRemapper
+import com.meowool.meta.internal.MetaReferencedSymbolRemapper
+import com.meowool.meta.internal.PatchDeclarationContainerTransformer
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 /**
  * @author 凛 (RinOrz)
  */
-abstract class CodeProcessor : IrElementTransformerVoid(), MetaExtension {
+abstract class CodeProcessor : PatchDeclarationContainerTransformer(), MetaExtension {
   lateinit var pluginContext: IrPluginContext
   lateinit var moduleFragment: IrModuleFragment
-  lateinit var symbolRemapper: MetaSymbolRemapper
+  lateinit var referencedSymbolRemapper: MetaReferencedSymbolRemapper
+
+  abstract class Callback : MetaExtension {
+    abstract fun action(context: IrPluginContext, module: IrModuleFragment)
+
+    abstract class Start : Callback()
+    abstract class End : Callback()
+  }
 }

@@ -20,12 +20,19 @@
  */
 package com.meowool.meta.analysis
 
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.psi.KtClassLikeDeclaration
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 val EmptyPremise: Any.() -> Boolean = { true }
 val EmptyPremiseWithParam: Any.(Any) -> Boolean = { true }
 
+typealias ClassOrObjectAnalysisPremise = KtClassOrObject.(ClassDescriptor) -> Boolean
+typealias ClassLikeAnalysisPremise = KtClassLikeDeclaration.(ClassDescriptor) -> Boolean
 typealias PropertyAnalysisPremise = KtProperty.(PropertyDescriptor) -> Boolean
 typealias CallAnalysisPremise = ResolvedCall<*>.() -> Boolean
+typealias ExpressionAnalysisPremise = KtExpression.() -> Boolean

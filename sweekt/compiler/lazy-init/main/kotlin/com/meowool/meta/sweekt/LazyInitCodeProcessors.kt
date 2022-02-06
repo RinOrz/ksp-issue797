@@ -20,9 +20,10 @@
  */
 package com.meowool.meta.sweekt
 
-import com.meowool.meta.annotations.Meta
+import com.meowool.meta.Meta
 import com.meowool.meta.codegen.CodegenContext
 import com.meowool.meta.codes
+import com.meowool.meta.internal.InternalCompilerApi
 import com.meowool.meta.utils.ir.callee
 import com.meowool.meta.utils.ir.copy
 import com.meowool.meta.utils.ir.correspondingProperty
@@ -34,7 +35,7 @@ import com.meowool.meta.utils.ir.irReturnExprBody
 import com.meowool.meta.utils.ir.irSetField
 import com.meowool.meta.utils.ir.irSetProperty
 import com.meowool.meta.utils.ir.irWhen
-import com.meowool.meta.utils.ir.isImmutable
+import com.meowool.meta.utils.ir.isVal
 import com.meowool.meta.utils.ir.parentContainer
 import com.meowool.meta.utils.ir.type
 import com.meowool.meta.utils.sameTo
@@ -54,22 +55,23 @@ import org.jetbrains.kotlin.ir.builders.irTrue
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 
 /**
  * Processes properties annotated with @LazyInit.
  * ---
  *
- * - step 1. Set the property to mutable.
- * - step 2. Generate a bridge field "isLazyInited$xxx" for property.
- * - step 3. Move and empty the property's initializer expression into the getter.
+ * - Step 1: Set the property to mutable.
+ * - Step 2: Generate a bridge field "isLazyInited$xxx" for property.
+ * - Step 3: Move the property's initializer expression into the getter.
  *
  * For example:
  * ```
  * @LazyInit
- * final val a = "Hello World"
+ * val a = "Hello World"
  * ```
+ *
  * After Processing:
  * ```
  * var isLazyInited$a = false
@@ -85,17 +87,17 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
  *
  * @author 凛 (RinOrz)
  */
-@Meta val lazyInitPropertyProcessor = codes.property(
-  premise = { hasAnnotation(LAZY_INIT) && isFakeOverride && backingField != null },
+@Meta val LazyInitPropertyProcessor = codes.property(
+  premise = { hasAnnotation(LAZY_INIT) && !isFakeOverride && backingField != null },
   processing = {
-    // step 1:
-    if (property.isImmutable) result = property.copy(isVar = true)
+    // Step 1
+    if (property.isVal) result = property.copy(isVar = true)
 
-    // step 2:
+    // Step 2
     val lazyInitBridge = getLazyInitBridgeOf(property)
 
-    // step 3:
-    property.getOrAddGetter().also { getter ->
+    // Step 3
+    property.getOrAddGetter().syntheticDefaultAccessor().also { getter ->
       getter.body = getter.buildIr {
         irReturnExprBody(
           irWhen(property.type) {
@@ -124,8 +126,8 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
  * Processes calls to 'any.resetLazyValue()' and 'resetLazyValues(...)'.
  * ---
  *
- * - step 1. Extract the property arguments to reset.
- * - step 2. Replace calls set their bridge to `false`.
+ * - Step 1. Extract the property arguments to reset.
+ * - Step 2. Replace calls set their bridge to `false`.
  *
  * For example:
  * ```
@@ -141,7 +143,7 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
  *
  * @author 凛 (RinOrz)
  */
-@Meta val lazyInitCallProcessor = codes.call {
+@Meta val LazyInitCallProcessor = codes.call {
 
   fun IrBuilderWithScope.replaceCallToSetBridge(reference: IrElement?): IrExpression {
     require(reference is IrCall)
@@ -153,7 +155,7 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
     return irSetField(reference.dispatchReceiver, lazyInitBridge, irFalse())
   }
 
-  when (callee.fqNameWhenAvailable) {
+  when (callee.kotlinFqName) {
     // case: any.resetLazyValue()
     LAZY_INIT_RESET_VALUE -> {
       result = call.buildIr { replaceCallToSetBridge(reference = call.extensionReceiver) }
@@ -187,3 +189,5 @@ private fun CodegenContext.getLazyInitBridgeOf(property: IrProperty): IrProperty
     visibility = DescriptorVisibilities.PUBLIC
   }
 }
+
+@InternalCompilerApi const val LAZY_INIT_BRIDGE_PREFIX = "isLazyInited$"

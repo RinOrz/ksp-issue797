@@ -21,82 +21,63 @@
 package com.meowool.meta.utils.ir
 
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
-import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.MetadataSource
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
+import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
-import org.jetbrains.kotlin.ir.symbols.impl.IrPropertySymbolImpl
+import org.jetbrains.kotlin.ir.symbols.impl.IrFieldSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 /**
  * @author 凛 (RinOrz)
  */
-val IrProperty.isMutable: Boolean get() = isVar && backingField?.isFinal == false
-
-/**
- * @author 凛 (RinOrz)
- */
-val IrProperty.isImmutable: Boolean get() = !isVar || backingField?.isFinal == true
+inline val IrProperty.isVal: Boolean get() = isVar.not()
 
 /**
  * @author 凛 (RinOrz)
  */
 val IrProperty.type: IrType get() = backingField?.type ?: getter?.returnType ?: error("Property $name type not found!")
 
-/**
- * @author 凛 (RinOrz)
- */
 @OptIn(ObsoleteDescriptorBasedAPI::class)
-fun IrProperty.copy(
+fun IrProperty.addBackingField(
   startOffset: Int = this.startOffset,
   endOffset: Int = this.endOffset,
   origin: IrDeclarationOrigin = this.origin,
-  symbol: IrPropertySymbol = IrPropertySymbolImpl(this.descriptor),
+  symbol: IrFieldSymbol = IrFieldSymbolImpl(this.descriptor),
   name: Name = this.name,
+  type: IrType = this.type,
   visibility: DescriptorVisibility = this.visibility,
-  modality: Modality = this.modality,
-  isVar: Boolean = this.isVar,
-  isConst: Boolean = this.isConst,
-  isLateinit: Boolean = this.isLateinit,
-  isDelegated: Boolean = this.isDelegated,
+  isFinal: Boolean = false,
   isExternal: Boolean = this.isExternal,
-  isExpect: Boolean = this.isExpect,
-  isFakeOverride: Boolean = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
-  containerSource: DeserializedContainerSource? = this.containerSource
-): IrProperty = factory.createProperty(
-  startOffset,
-  endOffset,
-  origin,
-  symbol,
-  name,
-  visibility,
-  modality,
-  isVar,
-  isConst,
-  isLateinit,
-  isDelegated,
-  isExternal,
-  isExpect,
-  isFakeOverride,
-  containerSource
-).also { new ->
-  new.parent = parent
-  new.annotations = annotations
-  new.metadata = metadata
-  new.attributeOwnerId = attributeOwnerId
-  new.overriddenSymbols = overriddenSymbols
-  new.getter = getter?.also { it.correspondingPropertySymbol = symbol }
-  new.setter = setter?.also { it.correspondingPropertySymbol = symbol }
-
-  backingField?.also { field ->
-    // fix wrong 'final' modifier
-    backingField = if (isVar && field.isFinal) {
-      field.copy(isFinal = false)
-    } else {
-      field
-    }.also { it.correspondingPropertySymbol = symbol }
+  isStatic: Boolean = this.isStatic,
+  parent: IrDeclarationParent = this.parent,
+  annotations: List<IrConstructorCall> = this.annotations,
+  metadata: MetadataSource? = this.metadata,
+  correspondingPropertySymbol: IrPropertySymbol? = this.symbol,
+  initializer: IrExpressionBody? = null,
+) {
+  backingField = factory.createField(
+    startOffset,
+    endOffset,
+    origin,
+    symbol,
+    name,
+    type,
+    visibility,
+    isFinal,
+    isExternal,
+    isStatic
+  ).also { new ->
+    new.parent = parent
+    new.annotations = annotations
+    new.metadata = metadata
+    new.correspondingPropertySymbol = correspondingPropertySymbol
+    new.initializer = initializer
   }
 }

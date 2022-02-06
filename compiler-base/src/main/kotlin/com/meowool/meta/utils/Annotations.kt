@@ -21,6 +21,11 @@
 package com.meowool.meta.utils
 
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 
 fun Annotated.hasAnnotation(fqName: FqName): Boolean = annotations.hasAnnotation(fqName)
+
+val AnnotationDescriptor?.psi: KtAnnotationEntry? get() = this?.let(DescriptorToSourceUtils::getSourceFromAnnotation)

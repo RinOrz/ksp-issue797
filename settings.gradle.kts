@@ -45,9 +45,8 @@ dependencyMapper {
 }
 
 gradleToolkitWithMeowoolSpec(spec = {
-  enableBinaryCompatibilityValidator {
-    it.path == ":compiler-base"
-  }
+  enableBinaryCompatibilityValidator { it.path == ":compiler-base" }
+  enableSpotless { it.path.contains(":embedded").not() }
 })
 
 importProjects(rootDir)

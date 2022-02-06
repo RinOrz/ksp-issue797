@@ -20,6 +20,6 @@
  */
 plugins { kotlin }
 
-publication.data.artifactId = "common-compiler"
-
 dependencies.implementation(Libs.Kotlin.Compiler)
+
+publication.data.artifactId = "common-compiler"

@@ -22,6 +22,7 @@
 
 import com.github.gmazzo.gradle.plugins.BuildConfigExtension
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.google.devtools.ksp.gradle.KspExtension
 import com.meowool.sweekt.firstCharTitlecase
 
 plugins {
@@ -32,7 +33,7 @@ plugins {
 }
 
 subprojects {
-  optIn("com.meowool.meta.annotations.InternalCompilerApi")
+  optIn("com.meowool.meta.internal.InternalCompilerApi")
 }
 
 registerLogic {
@@ -95,6 +96,10 @@ registerLogic {
       }
     }
 
+    configure<KspExtension> {
+      arg("meta.plugin.package", "com.meowool.meta.$metaGroup")
+    }
+
     publication.data.artifactId = "$metaGroup-compiler"
   }
 
@@ -119,7 +124,7 @@ registerLogic {
     // We move the test source set dir into the parent project (i.e. used intellij compiler project) dir.
     //  see: 'meta-compiler'
     sourceSets.test {
-      derivatives.forEach {
+      parent?.derivatives?.forEach {
         java.srcDir("../$it/test/kotlin")
         resources.srcDir("../$it/test/resources")
       }

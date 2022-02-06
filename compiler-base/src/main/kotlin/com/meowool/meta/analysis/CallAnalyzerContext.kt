@@ -18,30 +18,67 @@
  *
  * 如果您修改了此项目，则必须确保源文件中包含 Meowool 组织 URL: https://github.com/meowool
  */
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package com.meowool.meta.analysis
 
 import com.intellij.psi.PsiElement
+import com.meowool.meta.MetaExtension
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.MissingSupertypesResolver
+import org.jetbrains.kotlin.resolve.calls.context.ResolutionContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
+import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactory
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
-
+import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 
 /**
  * @author 凛 (RinOrz)
  */
-class CallAnalyzerContext(
+class CallAnalyzerContext<R>(
   val call: ResolvedCall<*>,
+  val resolution: ResolutionContext<*>?,
+  val missingSupertypesResolver: MissingSupertypesResolver?,
   override val analyzed: PsiElement,
   override val trace: BindingTrace,
-  override val languageVersionSettings: LanguageVersionSettings,
   override val moduleDescriptor: ModuleDescriptor,
+  override val metaContext: MetaExtension.Context,
   override val deprecationResolver: DeprecationResolver,
-) : AnalyzerContext() {
+  override val languageVersionSettings: LanguageVersionSettings,
+  override val componentContainer: StorageComponentContainer,
+) : AnalyzerContext<R>() {
   val callee: CallableDescriptor get() = call.resultingDescriptor
 
   val rawCall: Call get() = call.call
+
+  val scope: LexicalScope?
+    get() = resolution?.scope
+
+  val dataFlowInfo: DataFlowInfo?
+    get() = resolution?.dataFlowInfo
+
+  val isAnnotationContext: Boolean?
+    get() = resolution?.isAnnotationContext
+
+  val dataFlowValueFactory: DataFlowValueFactory?
+    get() = resolution?.dataFlowValueFactory
+
+  fun rebuild(call: ResolvedCall<*>) = CallAnalyzerContext<R>(
+    call,
+    resolution,
+    missingSupertypesResolver,
+    analyzed,
+    trace,
+    moduleDescriptor,
+    metaContext,
+    deprecationResolver,
+    languageVersionSettings,
+    componentContainer
+  )
 }

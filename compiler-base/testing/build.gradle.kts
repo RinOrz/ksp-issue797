@@ -32,6 +32,11 @@ dependencies {
   // Don't use 'implementation', because it will be passed in all runtime classpath,
   //   in case of embedded compiler, we need to relocate full compiler APIs in this project.
   compileOnlyProject(Projects.Compiler.Base)
+  testImplementationProject(Projects.Compiler.Base)
+}
+
+tasks.test {
+  useJUnitPlatform()
 }
 
 publication.data.artifactId = "common-compiler-testing"

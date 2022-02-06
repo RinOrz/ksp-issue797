@@ -24,13 +24,19 @@ import com.meowool.sweekt.castOrNull
 import com.meowool.sweekt.ifNull
 import org.jetbrains.kotlin.backend.common.ir.copyTo
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 
 val IrFunction.thisReceiver: IrValueParameter?
-  get() = dispatchReceiverParameter.ifNull { parent.castOrNull<IrClass>()?.thisReceiver?.copyTo(this) }
+  get() = dispatchReceiverParameter.ifNull {
+    parent.castOrNull<IrClass>()?.thisReceiver?.let {
+      // Fix: No mapping for symbol: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:...
+      if (this !is IrConstructor) it.copyTo(this) else it
+    }
+  }
 
 inline val IrSimpleFunction.correspondingProperty: IrProperty?
   get() = correspondingPropertySymbol?.owner

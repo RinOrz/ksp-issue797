@@ -20,7 +20,10 @@
  */
 package com.meowool.meta.codegen
 
+import com.meowool.meta.MetaExtension
+import com.meowool.meta.internal.MetaReferencedSymbolRemapper
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -29,7 +32,12 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 /**
  * @author 凛 (RinOrz)
  */
-abstract class CallCodegenContext(base: IrPluginContext) : ElementCodegenContext<IrCall, IrExpression>(base) {
+abstract class CallCodegenContext(
+  pluginContext: IrPluginContext,
+  moduleFragment: IrModuleFragment,
+  metaContext: MetaExtension.Context,
+  referencedSymbolRemapper: MetaReferencedSymbolRemapper
+) : ElementCodegenContext<IrCall, IrExpression>(pluginContext, moduleFragment, metaContext, referencedSymbolRemapper) {
   abstract val call: IrCall
   inline val callee: IrSimpleFunction get() = call.symbol.owner
   inline val calleeSymbol: IrSimpleFunctionSymbol get() = call.symbol

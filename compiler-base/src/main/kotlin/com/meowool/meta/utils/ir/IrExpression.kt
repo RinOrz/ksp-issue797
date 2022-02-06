@@ -24,20 +24,15 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
-import org.jetbrains.kotlin.ir.types.classOrNull
-import org.jetbrains.kotlin.ir.util.isObject
 
 /**
- * Returns true if this expression accesses 'this' class.
+ * Returns true if this expression accesses 'this' instance.
  *
  * @author 凛 (RinOrz)
  */
-val IrExpression.isAccessThisClass: Boolean
-  get() {
-    // Todo: More refined detect
+val IrExpression.isAccessThisInstanceReceiver
+  get(): Boolean {
     if (this !is IrGetValue) return false
     val target = this.symbol.owner as? IrValueParameter ?: return false
-    val expectedClass = this.type.classOrNull?.owner
-    if (expectedClass == null || expectedClass.isObject) return false
     return target.origin == IrDeclarationOrigin.INSTANCE_RECEIVER && target.name.asString() == "<this>"
   }

@@ -21,7 +21,9 @@
 package com.meowool.meta.analysis
 
 import com.intellij.psi.PsiElement
+import com.meowool.meta.MetaExtension
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.psi.KtProperty
@@ -31,14 +33,26 @@ import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
 /**
  * @author 凛 (RinOrz)
  */
-class PropertyAnalyzerContext(
-  override val declaration: KtProperty,
-  override val descriptor: PropertyDescriptor,
-  override val trace: BindingTrace,
-  override val languageVersionSettings: LanguageVersionSettings,
-  override val moduleDescriptor: ModuleDescriptor,
-  override val deprecationResolver: DeprecationResolver,
-  override val analyzed: PsiElement = declaration,
-) : DeclarationAnalyzerContext<KtProperty, PropertyDescriptor>() {
+class PropertyAnalyzerContext<R>(
+  declaration: KtProperty,
+  descriptor: PropertyDescriptor,
+  trace: BindingTrace,
+  languageVersionSettings: LanguageVersionSettings,
+  moduleDescriptor: ModuleDescriptor,
+  metaContext: MetaExtension.Context,
+  deprecationResolver: DeprecationResolver,
+  componentContainer: StorageComponentContainer,
+  analyzed: PsiElement = declaration,
+) : DeclarationAnalyzerContext<KtProperty, PropertyDescriptor, R>(
+  declaration,
+  descriptor,
+  trace,
+  languageVersionSettings,
+  moduleDescriptor,
+  metaContext,
+  deprecationResolver,
+  componentContainer,
+  analyzed
+) {
   val property: KtProperty get() = declaration
 }

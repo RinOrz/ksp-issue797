@@ -21,10 +21,24 @@
 package com.meowool.meta.utils.ir
 
 import com.meowool.sweekt.castOrNull
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 
-fun IrDeclarationContainer.findProperty(predicate: (IrProperty) -> Boolean): IrProperty? =
-  declarations.find { it is IrProperty && predicate(it) }.castOrNull()
+@PublishedApi
+internal val deferredDeclarations = mutableMapOf<IrDeclarationContainer, MutableList<IrDeclaration>>()
 
-fun IrDeclarationContainer.findPropertyByName(name: String): IrProperty? = findProperty { it.name.asString() == name }
+@PublishedApi
+internal inline fun <R> IrDeclarationContainer.runDeclarations(block: List<IrDeclaration>.() -> R) =
+  deferredDeclarations[this] ?: declarations.block()
+
+fun IrDeclarationContainer.addDeferredChild(declaration: IrDeclaration) {
+  deferredDeclarations.getOrPut(this) { mutableListOf() }.add(declaration)
+}
+
+inline fun IrDeclarationContainer.findProperty(predicate: (IrProperty) -> Boolean): IrProperty? = runDeclarations {
+  find { it is IrProperty && predicate(it) }
+}.castOrNull<IrProperty>()
+
+fun IrDeclarationContainer.findPropertyByName(name: String): IrProperty? =
+  findProperty { it.name.asString() == name }

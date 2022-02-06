@@ -20,13 +20,21 @@
  */
 package com.meowool.meta.codegen
 
+import com.meowool.meta.MetaExtension
+import com.meowool.meta.internal.MetaReferencedSymbolRemapper
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
 /**
  * @author 凛 (RinOrz)
  */
-abstract class ElementCodegenContext<E : IrElement, R : IrElement>(base: IrPluginContext) : CodegenContext(base) {
+abstract class ElementCodegenContext<E : IrElement, R : IrElement>(
+  pluginContext: IrPluginContext,
+  moduleFragment: IrModuleFragment,
+  metaContext: MetaExtension.Context,
+  referencedSymbolRemapper: MetaReferencedSymbolRemapper
+) : CodegenContext(pluginContext, moduleFragment, metaContext, referencedSymbolRemapper) {
   abstract var result: R
 
   val startOffset: Int get() = result.startOffset

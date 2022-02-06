@@ -21,10 +21,16 @@
 package com.meowool.meta.codegen
 
 import com.meowool.meta.analysis.EmptyPremise
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.expressions.IrCall
 
 inline val EmptyCodegenPremise get() = EmptyPremise
 
+typealias ClassCodegenPremise = IrClass.() -> Boolean
+typealias ConstructorCodegenPremise = IrConstructor.() -> Boolean
+typealias FunctionCodegenPremise = IrFunction.() -> Boolean
 typealias PropertyCodegenPremise = IrProperty.() -> Boolean
 typealias CallCodegenPremise = IrCall.() -> Boolean

@@ -21,28 +21,22 @@
 package com.meowool.meta.utils
 
 import com.meowool.sweekt.castOrNull
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.lexer.KtTokens.FINAL_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.OPEN_KEYWORD
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtVariableDeclaration
-import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 
 /**
  * @author 凛 (RinOrz)
  */
-val KtDeclaration.isFinalInCompileTime: Boolean
+val KtDeclaration?.isCompileTimeDeterminedProperty: Boolean
   get() {
+    if (this !is KtProperty) return false
     // The function members of interface are 'open' by default
     if (parent.parent.castOrNull<KtClass>()?.isInterface() == true) {
       if (hasModifier(FINAL_KEYWORD).not()) return false
     }
     return hasModifier(OPEN_KEYWORD).not() && castOrNull<KtVariableDeclaration>()?.isVar == false
   }
-
-/**
- * @author 凛 (RinOrz)
- */
-val DeclarationDescriptor?.sourceDeclaration: KtDeclaration?
-  get() = this?.let { DescriptorToSourceUtils.descriptorToDeclaration(it) as? KtDeclaration }

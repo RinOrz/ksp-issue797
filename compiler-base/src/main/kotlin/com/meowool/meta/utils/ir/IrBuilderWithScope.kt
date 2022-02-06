@@ -23,25 +23,39 @@ package com.meowool.meta.utils.ir
 import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContext
 import org.jetbrains.kotlin.ir.builders.Scope
+import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irExprBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSet
 import org.jetbrains.kotlin.ir.builders.irSetField
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.expressions.IrBranch
+import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetField
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrWhen
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrWhenImpl
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.util.parentAsClass
 
 fun IrBuilderWithScope.thisExpr(function: IrFunction) = function.thisReceiver?.let(::irGet)
 
 fun IrBuilderWithScope.irReturnExprBody(value: IrExpression) =
   irExprBody(irReturn(value))
+
+fun IrBuilderWithScope.irReturnBlockExprBody(value: IrExpression) =
+  irBlockBody { +irReturn(value) }
 
 fun IrBuilderWithScope.irGetField(receiver: IrExpression?, property: IrProperty): IrGetField =
   irGetField(receiver, property.backingField!!)
@@ -87,6 +101,67 @@ fun IrBuilderWithScope.irSetProperty(
   property: IrProperty,
   value: IrExpression
 ): IrExpression = irSetProperty(thisExpr(scope), property, value)
+
+fun IrBuilderWithScope.irCall(
+  callee: IrFunction,
+  vararg valueArguments: IrExpression,
+  dispatchReceiver: IrExpression? = null,
+  extensionReceiver: IrExpression? = null,
+  origin: IrStatementOrigin? = null,
+  superQualifierSymbol: IrClassSymbol? = null
+): IrCall {
+  require(valueArguments.size == callee.valueParameters.size)
+  return irCall(callee, origin, superQualifierSymbol).also {
+    it.dispatchReceiver = dispatchReceiver
+    it.extensionReceiver = extensionReceiver
+    valueArguments.forEachIndexed { index, irExpression ->
+      it.putValueArgument(index, irExpression)
+    }
+  }
+}
+
+fun IrBuilderWithScope.irCall(
+  callee: IrSimpleFunctionSymbol,
+  vararg valueArguments: IrExpression,
+  dispatchReceiver: IrExpression? = null,
+  extensionReceiver: IrExpression? = null,
+  origin: IrStatementOrigin? = null,
+  superQualifierSymbol: IrClassSymbol? = null
+): IrCall {
+  require(valueArguments.size == callee.owner.valueParameters.size)
+  return irCall(callee.owner, origin, superQualifierSymbol).also {
+    it.dispatchReceiver = dispatchReceiver
+    it.extensionReceiver = extensionReceiver
+    valueArguments.forEachIndexed { index, irExpression ->
+      it.putValueArgument(index, irExpression)
+    }
+  }
+}
+
+fun IrBuilderWithScope.irCall(
+  callee: IrConstructorSymbol,
+  vararg valueArguments: IrExpression,
+  dispatchReceiver: IrExpression? = null,
+  extensionReceiver: IrExpression? = null,
+  origin: IrStatementOrigin? = null,
+  type: IrType = callee.owner.returnType,
+  constructedClass: IrClass = callee.owner.parentAsClass
+): IrConstructorCall {
+  require(valueArguments.size == callee.owner.valueParameters.size)
+  return IrConstructorCallImpl(
+    startOffset, endOffset, type, callee,
+    valueArgumentsCount = callee.owner.valueParameters.size,
+    typeArgumentsCount = callee.owner.typeParameters.size + constructedClass.typeParameters.size,
+    constructorTypeArgumentsCount = callee.owner.typeParameters.size,
+    origin = origin
+  ).also {
+    it.dispatchReceiver = dispatchReceiver
+    it.extensionReceiver = extensionReceiver
+    valueArguments.forEachIndexed { index, irExpression ->
+      it.putValueArgument(index, irExpression)
+    }
+  }
+}
 
 fun IrBuilderWithScope.irWhen(
   type: IrType = context.irBuiltIns.unitType,
